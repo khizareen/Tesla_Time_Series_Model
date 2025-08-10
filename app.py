@@ -34,6 +34,7 @@ def load_model():
 minimal_sarima = load_model()
 
 # --------- FORECAST FUNCTION ----------
+# --------- FORECAST FUNCTION ----------
 def forecast_days(days):
     # Rebuild SARIMA model from minimal pickle
     sarima_model = sm.tsa.SARIMAX(
@@ -47,7 +48,18 @@ def forecast_days(days):
     sarima_model_fit = sarima_model.filter(minimal_sarima["params"])
     forecast_res = sarima_model_fit.get_forecast(steps=days)
     forecast_df = forecast_res.summary_frame()
+
+    # Create proper forecast dates
+    forecast_dates = pd.date_range(
+        start=data.index[-1] + pd.Timedelta(days=1),
+        periods=days,
+        freq="B"  # Business days
+    )
+    forecast_df.insert(0, "Date", forecast_dates)  # Add as first column
+    forecast_df.set_index("Date", inplace=True)
+
     return forecast_df
+
 
 # --------- SIDEBAR SETTINGS ----------
 st.sidebar.header("Forecast Settings")
